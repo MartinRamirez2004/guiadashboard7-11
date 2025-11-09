@@ -16,13 +16,15 @@ interface Estudiante {
 }
 
 export default function UsuarioPage() {
-  const router = useRouter();
   // 🧠 Estados del formulario (tipados)
   const [estudiante, setEstudiante] = useState<Estudiante | null>(null);
   const [nombre, setNombre] = useState<string>("");
   const [telefono, setTelefono] = useState<string>("");
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+
+  const [message, setMessage] = useState<string | null>(null);
+  const router = useRouter();
 
   // 🚀 Cargar la información del estudiante logueado
   const fetchEstudiante = async () => {
@@ -78,13 +80,27 @@ export default function UsuarioPage() {
     fetchEstudiante();
   }, []);
 
-  if (loading) return <p className="text-center">⏳ Cargando...</p>;
-
    // 🚪 Función opcional: cerrar sesión
     const handleLogout = async () => {
         await supabase.auth.signOut();
         router.push("/login");
     };
+  
+    useEffect(() => {
+      const checkUser = async () => {
+        const { data } = await supabase.auth.getUser();
+        
+        if (!data.user) { // ❌ No hay usuario logueado → redirige a login
+          router.push("/login");
+        } else {// ✅ Usuario logueado, seguimos con la página
+          setLoading(false);
+        }
+      };
+
+      checkUser();
+    }, [router]);
+
+    if (loading) return <p className="text-center">⏳ Cargando...</p>;
 
   // 🎨 INTERFAZ VISUAL
   return (

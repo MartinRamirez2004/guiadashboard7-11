@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabaseClient";
+import { useRouter } from "next/navigation"
 
 // 🧩 Definimos la estructura (tipo) de una actividad
 interface Actividad {
@@ -33,6 +34,9 @@ export default function MVPPage() {
   const [actividades, setActividades] = useState<Actividad[]>([]);
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+
+  const [message, setMenssage] = useState<string | null>(null);
+  const router = useRouter();
 
   // -----------------------------------------
   // 🚀 FUNCIÓN 1: Cargar cursos desde Supabase
@@ -125,8 +129,22 @@ export default function MVPPage() {
     fetchActividades();
   }, []);
 
-  if (loading) return <p className="text-center">⏳ Cargando...</p>;
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!data.user) {
+        // ❌ No hay usuario logueado → redirige a login
+        router.push("/login");
+      } else {
+        // ✅ Usuario logueado, seguimos con la página
+      setLoading(false);
+      }
+    };
+    checkUser();
+  }, [router]);
 
+  if (loading) return <p className="text-center">⏳ Cargando...</p>;
+  
   // -------------------------------------------------
   // 🎨 INTERFAZ VISUAL (FORMULARIO + LISTADO)
   // -------------------------------------------------
